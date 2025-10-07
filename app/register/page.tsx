@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [department, setDepartment] = useState("");
   const [role, setRole] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -26,6 +27,7 @@ export default function RegisterPage() {
       !fullName.trim() ||
       !email.trim() ||
       !password ||
+      !confirmPassword ||
       !department ||
       !role
     ) {
@@ -39,6 +41,10 @@ export default function RegisterPage() {
     }
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
@@ -68,7 +74,7 @@ export default function RegisterPage() {
             id="full_name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="Jane Doe"
+              placeholder="Enter your full name"
           />
         </div>
         <div className="space-y-2">
@@ -78,7 +84,7 @@ export default function RegisterPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="jane@example.com"
+            placeholder=""
           />
         </div>
         <div className="space-y-2">
@@ -88,7 +94,17 @@ export default function RegisterPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder=""
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirm_password">Confirm Password</Label>
+          <Input
+            id="confirm_password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder=""
           />
         </div>
         <div className="space-y-2">
@@ -97,7 +113,7 @@ export default function RegisterPage() {
             id="department"
             value={department}
             onChange={(e) => setDepartment(e.target.value)}
-            placeholder="Finance"
+              placeholder="Enter your department"
           />
         </div>
         <div className="space-y-2">
@@ -106,7 +122,7 @@ export default function RegisterPage() {
             id="role"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            placeholder="Admin, Manager, Staff"
+              placeholder="Enter your role (e.g. Admin, Manager, Staff)"
           />
         </div>
 
