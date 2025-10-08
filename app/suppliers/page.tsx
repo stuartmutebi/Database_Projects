@@ -16,18 +16,46 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { SupplierDialog } from "@/components/supplier-dialog";
 
-const mockSuppliers: any[] = [];
+type Supplier = {
+  id: string
+  name: string
+  contactPerson: string
+  email?: string
+  phone?: string
+  address?: string
+  website?: string
+}
+
+const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
 export default function SuppliersPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
 
-  const filteredSuppliers = mockSuppliers.filter(
+  const filteredSuppliers = suppliers.filter(
     (supplier) =>
       supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       supplier.contactPerson.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleSaveSupplier = (data: Omit<Supplier, "id">) => {
+    if (selectedSupplier) {
+      setSuppliers((prev) =>
+        prev.map((s) => (s.id === selectedSupplier.id ? { ...selectedSupplier, ...data } : s))
+      )
+    } else {
+      const newSupplier: Supplier = { id: generateId(), ...data }
+      setSuppliers((prev) => [newSupplier, ...prev])
+    }
+    setIsDialogOpen(false)
+    setSelectedSupplier(null)
+  }
+
+  const handleDeleteSupplier = (id: string) => {
+    setSuppliers((prev) => prev.filter((s) => s.id !== id))
+  }
 
   return (
     <div className="flex">
@@ -113,7 +141,7 @@ export default function SuppliersPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteSupplier(supplier.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -130,6 +158,7 @@ export default function SuppliersPage() {
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           supplier={selectedSupplier}
+          onSave={handleSaveSupplier}
         />
       </main>
     </div>

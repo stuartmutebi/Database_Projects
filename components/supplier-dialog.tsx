@@ -13,13 +13,23 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 
+interface SupplierFormData {
+  name: string
+  contactPerson: string
+  email?: string
+  phone?: string
+  address?: string
+  website?: string
+}
+
 interface SupplierDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   supplier?: any
+  onSave?: (data: SupplierFormData) => void
 }
 
-export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogProps) {
+export function SupplierDialog({ open, onOpenChange, supplier, onSave }: SupplierDialogProps) {
   const isEdit = !!supplier
 
   return (
@@ -68,7 +78,23 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={() => onOpenChange(false)}>{isEdit ? "Update Supplier" : "Add Supplier"}</Button>
+          <Button onClick={() => {
+            const name = (document.getElementById("name") as HTMLInputElement | null)?.value?.trim() || ""
+            const contactPerson = (document.getElementById("contactPerson") as HTMLInputElement | null)?.value?.trim() || ""
+            const email = (document.getElementById("email") as HTMLInputElement | null)?.value?.trim()
+            const phone = (document.getElementById("phone") as HTMLInputElement | null)?.value?.trim()
+            const address = (document.getElementById("address") as HTMLTextAreaElement | null)?.value?.trim()
+            const website = (document.getElementById("website") as HTMLInputElement | null)?.value?.trim()
+
+            if (!name || !contactPerson) {
+              // simple guard; could be replaced with toasts/validation UI
+              return
+            }
+
+            onSave?.({ name, contactPerson, email, phone, address, website })
+          }}>
+            {isEdit ? "Update Supplier" : "Add Supplier"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
