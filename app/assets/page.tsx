@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,33 +15,43 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { AssetDialog } from "@/components/asset-dialog";
-import {
-  listAssets,
-  createAsset,
-  updateAsset,
-  deleteAsset,
-  seedDemoAssets,
-  type AssetRecord,
-} from "@/lib/assets";
+import { toast } from "sonner";
+
+// Empty initial data; connect to API/DB later
+const initialAssets: any[] = [];
 
 export default function AssetsPage() {
-  const [assets, setAssets] = useState<AssetRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState<AssetRecord | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState(null);
+  const [assets, setAssets] = useState<any[]>(() => {
+    try {
+      if (typeof window === "undefined") return initialAssets
+      const raw = localStorage.getItem("assets")
+      return raw ? JSON.parse(raw) : initialAssets
+    } catch (err) {
+      console.error("failed to read assets from localStorage", err)
+      return initialAssets
+    }
+  })
 
   useEffect(() => {
-    seedDemoAssets();
-    setAssets(listAssets());
-  }, []);
+    try {
+      localStorage.setItem("assets", JSON.stringify(assets))
+    } catch (err) {
+      console.error("failed to write assets to localStorage", err)
+    }
+  }, [assets])
 
-  const filteredAssets = assets.filter(
-    (asset) =>
-      asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      asset.serialNumber.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAssets = assets.filter((asset) => {
+    const q = searchQuery.toLowerCase()
+    return (
+      String(asset.name || "").toLowerCase().includes(q) ||
+      String(asset.serialNumber || "").toLowerCase().includes(q)
+    )
+  })
 
-  const handleEdit = (asset: AssetRecord) => {
+  const handleEdit = (asset: any) => {
     setSelectedAsset(asset);
     setIsDialogOpen(true);
   };
@@ -52,21 +61,13 @@ export default function AssetsPage() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (asset: AssetRecord) => {
-    deleteAsset(asset.id);
-    setAssets(listAssets());
-  };
-
-  const handleSubmit = (payload: Omit<AssetRecord, "id" | "createdAt" | "updatedAt">) => {
-    if (selectedAsset) {
-      updateAsset(selectedAsset.id, payload);
-    } else {
-      createAsset(payload);
-    }
-    setIsDialogOpen(false);
-    setSelectedAsset(null);
-    setAssets(listAssets());
-  };
+  const handleSave = (payload: any) => {
+    // create a simple id and prepend
+    const item = { id: Date.now().toString(), ...payload }
+    setAssets((s) => [item, ...s])
+    setIsDialogOpen(false)
+    toast.success('Asset added')
+  }
 
   return (
     <div className="flex">
@@ -93,7 +94,7 @@ export default function AssetsPage() {
                 <Input
                   placeholder="Search assets by name or serial number..."
                   value={searchQuery}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -125,7 +126,7 @@ export default function AssetsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredAssets.map((asset: AssetRecord) => (
+                  filteredAssets.map((asset) => (
                     <TableRow key={asset.id}>
                       <TableCell className="font-medium">
                         {asset.name}
@@ -141,10 +142,10 @@ export default function AssetsPage() {
                       </TableCell>
                       <TableCell>{asset.assignedUser}</TableCell>
                       <TableCell>
-                        UGX {(asset.purchasePrice ?? 0).toLocaleString()}
+                        UGX {asset.purchasePrice.toLocaleString()}
                       </TableCell>
                       <TableCell>
-                        UGX {(asset.currentValue ?? 0).toLocaleString()}
+                        UGX {asset.currentValue.toLocaleString()}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -155,7 +156,7 @@ export default function AssetsPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(asset)}>
+                          <Button variant="ghost" size="icon">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -171,8 +172,8 @@ export default function AssetsPage() {
         <AssetDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
-          asset={selectedAsset ?? undefined}
-          onSubmit={handleSubmit}
+          asset={selectedAsset}
+          onSubmit={handleSave}
         />
       </main>
     </div>
