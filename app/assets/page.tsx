@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Button } from "@/components/ui/button";
@@ -15,15 +16,21 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { AssetDialog } from "@/components/asset-dialog";
 
+
 import { toast } from "sonner";
 
 // Empty initial data; connect to API/DB later
 const initialAssets: any[] = [];
 
+// Empty initial data; connect to API/DB later
+const mockAssets: any[] = [];
+
+
 export default function AssetsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
+
   const [assets, setAssets] = useState<any[]>(() => {
     try {
       if (typeof window === "undefined") return initialAssets
@@ -52,6 +59,11 @@ export default function AssetsPage() {
   });
 
 
+
+
+  // Removed duplicate filteredAssets declaration for mockAssets
+
+
   const handleEdit = (asset: any) => {
     setSelectedAsset(asset);
     setIsDialogOpen(true);
@@ -61,15 +73,6 @@ export default function AssetsPage() {
     setSelectedAsset(null);
     setIsDialogOpen(true);
   };
-
-
-  const handleSave = (payload: any) => {
-    // create a simple id and prepend
-    const item = { id: Date.now().toString(), ...payload }
-    setAssets((s) => [item, ...s])
-    setIsDialogOpen(false)
-    toast.success('Asset added')
-  }
 
   return (
     <div className="flex">
