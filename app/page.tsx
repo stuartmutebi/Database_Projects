@@ -18,10 +18,6 @@ export default function DashboardPage() {
     const u = getCurrentUser()
     setUser(u);
     setReady(true);
-    if (!u) {
-      // if not authenticated, send visitor to registration page
-      router.push('/register')
-    }
   }, []);
 
   if (!ready) {
