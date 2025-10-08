@@ -7,14 +7,21 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, type UserRecord } from "@/lib/auth";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserRecord | null>(null);
   const [ready, setReady] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    setUser(getCurrentUser());
+    const u = getCurrentUser()
+    setUser(u);
     setReady(true);
+    if (!u) {
+      // if not authenticated, send visitor to registration page
+      router.push('/register')
+    }
   }, []);
 
   if (!ready) {

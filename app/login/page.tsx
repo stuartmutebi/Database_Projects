@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { loginWithFullName } from "@/lib/auth";
+import { loginByIdentifier } from "@/lib/auth";
+import { toast } from "sonner";
 import Link from "next/link";
 // Eye and Eye-slash SVG icons
 const EyeIcon = () => (
@@ -32,14 +33,15 @@ export default function LoginPage() {
       return;
     }
     setSubmitting(true);
-    // Replace with your actual login function
-    // const res = loginWithFullName(fullName, password);
-    const res = { ok: true };
+  const res = loginByIdentifier(fullName, password);
     setSubmitting(false);
     if (!res.ok) {
-      setError("Login failed");
+      setError(res.error || "Login failed");
+      toast.error(res.error || "Login failed")
       return;
     }
+    // on success show notification and go to dashboard
+    toast.success("Login successful")
     router.push("/");
   }
 
@@ -97,6 +99,8 @@ export default function LoginPage() {
           {submitting ? "Signing in..." : "Login"}
         </Button>
       </form>
+      {/* debug panel removed */}
     </div>
   );
 }
+ 

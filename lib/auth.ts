@@ -38,6 +38,9 @@ function readUsers(): UserRecord[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
+    // debug: log number of users found
+    // eslint-disable-next-line no-console
+    console.debug(`auth.readUsers -> ${Array.isArray(parsed) ? parsed.length : 0} users`) 
     if (Array.isArray(parsed)) return parsed as UserRecord[];
     return [];
   } catch {
@@ -48,6 +51,9 @@ function readUsers(): UserRecord[] {
 function writeUsers(users: UserRecord[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  // debug: log write
+  // eslint-disable-next-line no-console
+  console.debug(`auth.writeUsers -> wrote ${users.length} users`)
 }
 
 export function registerUser(
@@ -66,6 +72,9 @@ export function registerUser(
   const user: UserRecord = { id: generateId(), ...newUser };
   users.push(user);
   writeUsers(users);
+  // debug: newly registered user
+  // eslint-disable-next-line no-console
+  console.debug('auth.registerUser -> registered', { id: user.id, full_name: user.full_name, email: user.email })
   // auto-login on registration
   if (typeof window !== "undefined") {
     window.localStorage.setItem(SESSION_KEY, user.id);
@@ -81,9 +90,36 @@ export function loginWithFullName(
   const user = users.find(
     (u) => u.full_name.trim().toLowerCase() === full_name.trim().toLowerCase()
   );
+  // debug: login attempt
+  // eslint-disable-next-line no-console
+  console.debug('auth.loginWithFullName -> attempt', { full_name, found: !!user, usersCount: users.length })
   if (!user) return { ok: false, error: "User not found" };
   if (user.password !== password)
     return { ok: false, error: "Invalid password" };
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(SESSION_KEY, user.id);
+  }
+  return { ok: true };
+}
+
+/**
+ * Try login by either full_name or email (identifier may be full name or email)
+ */
+export function loginByIdentifier(
+  identifier: string,
+  password: string
+): { ok: true } | { ok: false; error: string } {
+  const users = readUsers();
+  const id = identifier.trim();
+  const lower = id.toLowerCase();
+  const user = users.find(
+    (u) => u.full_name.trim().toLowerCase() === lower || u.email.trim().toLowerCase() === lower
+  );
+  // debug: login by identifier
+  // eslint-disable-next-line no-console
+  console.debug('auth.loginByIdentifier -> attempt', { identifier: id, found: !!user, usersCount: users.length })
+  if (!user) return { ok: false, error: "User not found" };
+  if (user.password !== password) return { ok: false, error: "Invalid password" };
   if (typeof window !== "undefined") {
     window.localStorage.setItem(SESSION_KEY, user.id);
   }

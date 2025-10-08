@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,20 +15,41 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { AssetDialog } from "@/components/asset-dialog";
+import { toast } from "sonner";
 
 // Empty initial data; connect to API/DB later
-const mockAssets: any[] = [];
+const initialAssets: any[] = [];
 
 export default function AssetsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
+  const [assets, setAssets] = useState<any[]>(() => {
+    try {
+      if (typeof window === "undefined") return initialAssets
+      const raw = localStorage.getItem("assets")
+      return raw ? JSON.parse(raw) : initialAssets
+    } catch (err) {
+      console.error("failed to read assets from localStorage", err)
+      return initialAssets
+    }
+  })
 
-  const filteredAssets = mockAssets.filter(
-    (asset) =>
-      asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      asset.serialNumber.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    try {
+      localStorage.setItem("assets", JSON.stringify(assets))
+    } catch (err) {
+      console.error("failed to write assets to localStorage", err)
+    }
+  }, [assets])
+
+  const filteredAssets = assets.filter((asset) => {
+    const q = searchQuery.toLowerCase()
+    return (
+      String(asset.name || "").toLowerCase().includes(q) ||
+      String(asset.serialNumber || "").toLowerCase().includes(q)
+    )
+  })
 
   const handleEdit = (asset: any) => {
     setSelectedAsset(asset);
@@ -39,6 +60,14 @@ export default function AssetsPage() {
     setSelectedAsset(null);
     setIsDialogOpen(true);
   };
+
+  const handleSave = (payload: any) => {
+    // create a simple id and prepend
+    const item = { id: Date.now().toString(), ...payload }
+    setAssets((s) => [item, ...s])
+    setIsDialogOpen(false)
+    toast.success('Asset added')
+  }
 
   return (
     <div className="flex">
@@ -144,6 +173,7 @@ export default function AssetsPage() {
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           asset={selectedAsset}
+          onSubmit={handleSave}
         />
       </main>
     </div>

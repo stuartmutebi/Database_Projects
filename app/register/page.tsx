@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { registerUser } from "@/lib/auth";
+import { toast } from "sonner";
 import Link from "next/link";
 // Eye and Eye-slash SVG icons
 const EyeIcon = () => (
@@ -70,7 +71,9 @@ export default function RegisterPage() {
       setError(res.error);
       return;
     }
-    router.push("/");
+  // registration successful -> show notification and go to login
+  toast.success("Account created successfully")
+  router.push("/login");
   }
 
   return (
