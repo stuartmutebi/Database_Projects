@@ -25,7 +25,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const u = getCurrentUser()
+    const u = getCurrentUser();
     setUser(u);
     setReady(true);
   }, []);
@@ -46,13 +46,13 @@ export default function DashboardPage() {
           s.json(),
           m.json(),
         ]);
-        const activeUsers = (users || []).filter((x: any) => x.status === 'Active').length;
+        const activeUsers = (users || []).filter((x: any) => x.status === "Active").length;
         const openMaint = (maintenance || []).length;
         setStats([
-          { title: 'Total Assets', value: String((assets || []).length), icon: Package, description: 'All registered assets' },
-          { title: 'Active Users', value: String(activeUsers), icon: Users, description: 'Users available for assignment' },
-          { title: 'Suppliers', value: String((suppliers || []).length), icon: Building2, description: 'Vendors you buy from' },
-          { title: 'Open Maintenance', value: String(openMaint), icon: Wrench, description: 'Service tickets recorded' },
+          { title: "Total Assets", value: String((assets || []).length), icon: Package, description: "All registered assets" },
+          { title: "Active Users", value: String(activeUsers), icon: Users, description: "Users available for assignment" },
+          { title: "Suppliers", value: String((suppliers || []).length), icon: Building2, description: "Vendors you buy from" },
+          { title: "Open Maintenance", value: String(openMaint), icon: Wrench, description: "Service tickets recorded" },
         ]);
         setRecentAssets((assets || []).slice(-5).reverse());
         const upcoming = (maintenance || []).slice(-5).reverse();
@@ -77,7 +77,9 @@ export default function DashboardPage() {
               <h2 className="text-3xl font-extrabold tracking-tight mb-2">Hello, Welcome!</h2>
               <p className="opacity-90 mb-6">Don't have an account?</p>
               <Button asChild className="bg-white text-foreground hover:bg-white/90">
-                <Link href="/register" prefetch>Register</Link>
+                <Link href="/register" prefetch>
+                  Register
+                </Link>
               </Button>
             </div>
           </div>
@@ -89,10 +91,14 @@ export default function DashboardPage() {
             </div>
             <div className="mt-6 flex items-center gap-3">
               <Button asChild className="px-6">
-                <Link href="/login" prefetch>Login</Link>
+                <Link href="/login" prefetch>
+                  Login
+                </Link>
               </Button>
               <Button variant="outline" asChild className="px-6">
-                <Link href="/register" prefetch>Register</Link>
+                <Link href="/register" prefetch>
+                  Register
+                </Link>
               </Button>
             </div>
           </div>
@@ -100,7 +106,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-  
 
   return (
     <div className="flex">
@@ -108,9 +113,7 @@ export default function DashboardPage() {
       <main className="flex-1 p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Overview of your asset management system
-          </p>
+          <p className="text-muted-foreground">Overview of your asset management system</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -125,12 +128,8 @@ export default function DashboardPage() {
                   <Icon className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
-                    {stat.value}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {stat.description}
-                  </p>
+                  <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground">{stat.description}</p>
                 </CardContent>
               </Card>
             );
@@ -150,7 +149,7 @@ export default function DashboardPage() {
                 {recentAssets.map((a: any) => (
                   <div key={a.asset_id} className="flex items-center justify-between text-sm">
                     <span className="font-medium">{a.asset_name}</span>
-                    <span className="text-muted-foreground">{a.serial_number || '-'}</span>
+                    <span className="text-muted-foreground">{a.serial_number || "-"}</span>
                   </div>
                 ))}
               </div>
@@ -169,7 +168,9 @@ export default function DashboardPage() {
                 {upcomingMaint.map((m: any) => (
                   <div key={m.maintenance_id} className="flex items-center justify-between text-sm">
                     <span className="font-medium">Asset #{m.asset_id}</span>
-                    <span className="text-muted-foreground">{m.maintenance_date ? String(m.maintenance_date).slice(0,10) : '-'}</span>
+                    <span className="text-muted-foreground">
+                      {m.maintenance_date ? String(m.maintenance_date).slice(0, 10) : "-"}
+                    </span>
                   </div>
                 ))}
               </div>

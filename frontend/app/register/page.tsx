@@ -77,6 +77,7 @@ export default function RegisterPage() {
   }
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen grid place-items-center p-6 route-container">
       <div className="landing-card grid grid-cols-1 md:grid-cols-2 w-full max-w-4xl bg-card">
         <div className="landing-left p-10 text-white hidden md:flex items-center justify-center">
@@ -89,6 +90,11 @@ export default function RegisterPage() {
       <h2 className="mb-2 text-2xl font-semibold">Create your account</h2>
       <p className="mb-6 text-sm text-muted-foreground">Fill in the details below to get started.</p>
       <form onSubmit={handleSubmit} className="space-y-5">
+=======
+    <div className="mx-auto max-w-md p-6">
+      <h2 className="mb-6 text-2xl font-semibold">Create your account</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+>>>>>>> origin/main
         <div className="space-y-2">
           <Label htmlFor="full_name">Full name</Label>
           <Input
@@ -186,8 +192,11 @@ export default function RegisterPage() {
           </Link>
         </p>
       </form>
+<<<<<<< HEAD
         </div>
       </div>
+=======
+>>>>>>> origin/main
     </div>
   );
 }

@@ -161,8 +161,10 @@ export function AssetDialog({ open, onOpenChange, asset, categories = [], suppli
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -174,8 +176,10 @@ export function AssetDialog({ open, onOpenChange, asset, categories = [], suppli
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
                 <SelectContent>
-                  {locations.map(l => (
-                    <SelectItem key={l.id} value={String(l.id)}>{l.name}</SelectItem>
+                  {locations.map((l) => (
+                    <SelectItem key={l.id} value={String(l.id)}>
+                      {l.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -187,8 +191,10 @@ export function AssetDialog({ open, onOpenChange, asset, categories = [], suppli
                   <SelectValue placeholder="Select supplier" />
                 </SelectTrigger>
                 <SelectContent>
-                  {suppliers.map(s => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                  {suppliers.map((s) => (
+                    <SelectItem key={s.id} value={String(s.id)}>
+                      {s.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -196,7 +202,9 @@ export function AssetDialog({ open, onOpenChange, asset, categories = [], suppli
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button onClick={handleSubmit}>{isEdit ? "Update Asset" : "Add Asset"}</Button>
         </DialogFooter>
       </DialogContent>
