@@ -71,13 +71,12 @@ export default function RegisterPage() {
       setError(res.error);
       return;
     }
-  // registration successful -> show notification and go to login
-  toast.success("Account created successfully")
-  router.push("/login");
+    // registration successful -> show notification and go to login
+    toast.success("Account created successfully")
+    router.push("/login");
   }
 
   return (
-<<<<<<< HEAD
     <div className="min-h-screen grid place-items-center p-6 route-container">
       <div className="landing-card grid grid-cols-1 md:grid-cols-2 w-full max-w-4xl bg-card">
         <div className="landing-left p-10 text-white hidden md:flex items-center justify-center">
@@ -87,116 +86,108 @@ export default function RegisterPage() {
           </div>
         </div>
         <div className="p-8 md:p-10">
-      <h2 className="mb-2 text-2xl font-semibold">Create your account</h2>
-      <p className="mb-6 text-sm text-muted-foreground">Fill in the details below to get started.</p>
-      <form onSubmit={handleSubmit} className="space-y-5">
-=======
-    <div className="mx-auto max-w-md p-6">
-      <h2 className="mb-6 text-2xl font-semibold">Create your account</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
->>>>>>> origin/main
-        <div className="space-y-2">
-          <Label htmlFor="full_name">Full name</Label>
-          <Input
-            id="full_name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter your full name"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder=""
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder=""
-            />
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground px-2 py-1 focus:outline-none"
-              onClick={() => setShowPassword((v) => !v)}
-              tabIndex={-1}
-            >
-              {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
-            </button>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="confirm_password">Confirm Password</Label>
-          <div className="relative">
-            <Input
-              id="confirm_password"
-              type={showConfirmPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder=""
-            />
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground px-2 py-1 focus:outline-none"
-              onClick={() => setShowConfirmPassword((v) => !v)}
-              tabIndex={-1}
-            >
-              {showConfirmPassword ? <EyeSlashIcon /> : <EyeIcon />}
-            </button>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="department">Department</Label>
-          <Input
-            id="department"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-              placeholder="Enter your department"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="role">Role</Label>
-          <Input
-            id="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-              placeholder="Enter your role (e.g. Admin, Manager, Staff)"
-          />
-        </div>
+          <h2 className="mb-2 text-2xl font-semibold">Create your account</h2>
+          <p className="mb-6 text-sm text-muted-foreground">Fill in the details below to get started.</p>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Full name</Label>
+              <Input
+                id="full_name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder=""
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder=""
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground px-2 py-1 focus:outline-none"
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirm_password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder=""
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground px-2 py-1 focus:outline-none"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeSlashIcon /> : <EyeIcon />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="department">Department</Label>
+              <Input
+                id="department"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                placeholder="Enter your department"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Input
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                placeholder="Enter your role (e.g. Admin, Manager, Staff)"
+              />
+            </div>
 
-        {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        )}
+            {error && (
+              <p className="text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            )}
 
-        <Button type="submit" disabled={submitting} className="w-full">
-          {submitting ? "Creating account..." : "Register"}
-        </Button>
-        <p className="text-center text-sm text-muted-foreground">
-          Already have an account? {""}
-          <Link
-            href="/login"
-            className="text-primary underline-offset-4 hover:underline"
-          >
-            Login
-          </Link>
-        </p>
-      </form>
-<<<<<<< HEAD
+            <Button type="submit" disabled={submitting} className="w-full">
+              {submitting ? "Creating account..." : "Register"}
+            </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Already have an account? {""}
+              <Link
+                href="/login"
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                Login
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
-=======
->>>>>>> origin/main
     </div>
   );
 }
