@@ -124,3 +124,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Simple page mount/leave transitions (CSS-only) */
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+.route-container {
+  animation: slideFadeIn 260ms ease-out both;
+}
+.route-leave {
+  animation: slideFadeOut 200ms ease-in both;
+}
+
+/* Landing split card layout helpers */
+.landing-card {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.landing-left {
+  background: linear-gradient(135deg, var(--primary) 0%, color-mix(in oklab, var(--primary) 70%, #3b82f6 30%) 100%);
+}
+.landing-left .welcome-blob {
+  border-top-left-radius: 18px;
+  border-bottom-left-radius: 18px;
+}

@@ -11,7 +11,7 @@ import { ClassificationDialog, Classification } from "@/components/classificatio
 import { ConfirmationDialog } from "@/components/confirmation-dialog"
 import { useNotificationActions } from "@/components/notification-system"
 
-const STORAGE_KEY = "database_classifications"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000"
 
 // Generate a simple ID
 function generateId(): string {
@@ -28,22 +28,31 @@ export default function ClassificationsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("All")
   const { showSuccess, showError } = useNotificationActions()
 
-  // Load classifications from localStorage on component mount
+  // Load classifications from API on mount
   useEffect(() => {
-    const savedClassifications = localStorage.getItem(STORAGE_KEY)
-    if (savedClassifications) {
+    async function load() {
       try {
-        setClassifications(JSON.parse(savedClassifications))
-      } catch (error) {
-        console.error("Error loading classifications from localStorage:", error)
+        const res = await fetch(`${API_BASE_URL}/api/categories`)
+        if (!res.ok) throw new Error("Failed to load categories")
+        const data: Array<{ category_id: number; category_name: string; description?: string | null; _count?: { assets: number } }> = await res.json()
+        setClassifications(
+          data.map((c) => ({
+            id: String(c.category_id),
+            name: c.category_name,
+            description: c.description || "",
+            category: "General",
+            assetCount: c._count?.assets ?? 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }))
+        )
+      } catch (e) {
+        console.error(e)
+        showError("Load Failed", "Unable to load classifications from server")
       }
     }
+    load()
   }, [])
-
-  // Save classifications to localStorage whenever classifications state changes
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(classifications))
-  }, [classifications])
 
   const filteredClassifications = classifications.filter((classification) => {
     const matchesSearch = 
@@ -56,25 +65,53 @@ export default function ClassificationsPage() {
     return matchesSearch && matchesCategory
   })
 
-  const handleAddClassification = (classificationData: Omit<Classification, 'id' | 'assetCount' | 'createdAt' | 'updatedAt'>) => {
-    const newClassification: Classification = {
-      ...classificationData,
-      id: generateId(),
-      assetCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  const handleAddClassification = async (classificationData: Omit<Classification, 'id' | 'assetCount' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category_name: classificationData.name, description: classificationData.description })
+      })
+      if (!res.ok) throw new Error('Failed to create category')
+      const created: { category_id: number; category_name: string; description?: string | null; _count?: { assets: number } } = await res.json()
+      setClassifications(prev => [...prev, {
+        id: String(created.category_id),
+        name: created.category_name,
+        description: created.description || '',
+        category: classificationData.category || 'General',
+        assetCount: created._count?.assets ?? 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }])
+      showSuccess("Classification Added", `${classificationData.name} has been successfully added.`)
+    } catch (e) {
+      console.error(e)
+      showError("Create Failed", "Unable to save classification to server")
     }
-    setClassifications(prev => [...prev, newClassification])
-    showSuccess("Classification Added", `${classificationData.name} has been successfully added.`)
   }
 
-  const handleUpdateClassification = (id: string, classificationData: Omit<Classification, 'id' | 'assetCount' | 'createdAt' | 'updatedAt'>) => {
-    setClassifications(prev => prev.map(classification => 
-      classification.id === id 
-        ? { ...classification, ...classificationData, updatedAt: new Date().toISOString() }
-        : classification
-    ))
-    showSuccess("Classification Updated", `${classificationData.name} has been successfully updated.`)
+  const handleUpdateClassification = async (id: string, classificationData: Omit<Classification, 'id' | 'assetCount' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/categories/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category_name: classificationData.name, description: classificationData.description })
+      })
+      if (!res.ok) throw new Error('Failed to update category')
+      const updated: { category_id: number; category_name: string; description?: string | null; _count?: { assets: number } } = await res.json()
+      setClassifications(prev => prev.map(c => c.id === id ? {
+        ...c,
+        name: updated.category_name,
+        description: updated.description || '',
+        category: classificationData.category || c.category,
+        assetCount: updated._count?.assets ?? c.assetCount,
+        updatedAt: new Date().toISOString(),
+      } : c))
+      showSuccess("Classification Updated", `${classificationData.name} has been successfully updated.`)
+    } catch (e) {
+      console.error(e)
+      showError("Update Failed", "Unable to update classification on server")
+    }
   }
 
   const handleDeleteClassification = (classification: Classification) => {
@@ -82,10 +119,17 @@ export default function ClassificationsPage() {
     setDeleteConfirmOpen(true)
   }
 
-  const confirmDelete = () => {
-    if (classificationToDelete) {
+  const confirmDelete = async () => {
+    if (!classificationToDelete) return
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/categories/${classificationToDelete.id}`, { method: 'DELETE' })
+      if (!res.ok && res.status !== 204) throw new Error('Failed to delete category')
       setClassifications(prev => prev.filter(classification => classification.id !== classificationToDelete.id))
       showSuccess("Classification Deleted", `${classificationToDelete.name} has been successfully deleted.`)
+    } catch (e) {
+      console.error(e)
+      showError("Delete Failed", "Unable to delete classification from server")
+    } finally {
       setClassificationToDelete(null)
     }
   }
@@ -198,6 +242,7 @@ export default function ClassificationsPage() {
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
                   className="px-3 py-2 border border-input bg-background rounded-md text-sm"
+                  aria-label="Filter by category"
                 >
                   <option value="All">All Categories</option>
                   {categories.map(category => (

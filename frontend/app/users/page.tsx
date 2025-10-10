@@ -17,32 +17,46 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus, Search, Edit, Trash2, Users, Filter } from "lucide-react";
 import { UserDialog, User } from "../../components/user-dialog";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
+ 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
-const STORAGE_KEY = "database_users";
+type ApiUser = {
+  user_id: number;
+  name: string;
+  department?: string | null;
+  occupation?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  nin?: string | null;
+  status?: string | null;
+};
 
-function readUsers(): User[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as User[]) : [];
-  } catch {
-    return [];
-  }
+function mapApiUserToUi(u: ApiUser): User {
+  return {
+    id: String(u.user_id),
+    name: u.name,
+    email: u.email || "",
+    phone: u.phone || "",
+    department: u.department || "",
+    position: u.occupation || "",
+    nin: u.nin || "",
+    status: (u.status as any) || "Active",
+    notes: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 }
 
-function writeUsers(nextUsers: User[]) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextUsers));
-  } catch {
-    // ignore persistence errors
-  }
-}
-
-function generateId(): string {
-  return `user_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+function mapUiToApi(user: Omit<User, "id" | "createdAt" | "updatedAt">): Omit<ApiUser, "user_id"> {
+  return {
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    department: user.department,
+    occupation: user.position,
+    nin: user.nin || null,
+    status: user.status,
+  };
 }
 
 export default function UsersPage() {
@@ -55,12 +69,18 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<"All" | "Active" | "Inactive">("All");
 
   useEffect(() => {
-    setUsers(readUsers());
+    async function load() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/users`);
+        if (!res.ok) throw new Error("Failed to load users");
+        const data: ApiUser[] = await res.json();
+        setUsers(data.map(mapApiUserToUi));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    load();
   }, []);
-
-  useEffect(() => {
-    writeUsers(users);
-  }, [users]);
 
   const filteredUsers = users.filter((user) => {
     const query = searchQuery.toLowerCase();
@@ -73,27 +93,37 @@ export default function UsersPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleAddUser = (userData: Omit<User, "id" | "createdAt" | "updatedAt">) => {
-    const newUser: User = {
-      ...userData,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setUsers((prev) => [...prev, newUser]);
+  const handleAddUser = async (userData: Omit<User, "id" | "createdAt" | "updatedAt">) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(mapUiToApi(userData)),
+      });
+      if (!res.ok) throw new Error("Failed to create user");
+      const created: ApiUser = await res.json();
+      setUsers((prev) => [...prev, mapApiUserToUi(created)]);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleUpdateUser = (
+  const handleUpdateUser = async (
     id: string,
     userData: Omit<User, "id" | "createdAt" | "updatedAt">
   ) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id
-          ? { ...user, ...userData, updatedAt: new Date().toISOString() }
-          : user
-      )
-    );
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/users/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(mapUiToApi(userData)),
+      });
+      if (!res.ok) throw new Error("Failed to update user");
+      const updated: ApiUser = await res.json();
+      setUsers((prev) => prev.map((u) => (u.id === id ? mapApiUserToUi(updated) : u)));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleDeleteUser = (user: User) => {
@@ -101,9 +131,17 @@ export default function UsersPage() {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (userToDelete) {
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/users/${userToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok && res.status !== 204) throw new Error("Failed to delete user");
       setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+    } catch (err) {
+      console.error(err);
+    } finally {
       setUserToDelete(null);
     }
   };
@@ -226,7 +264,8 @@ export default function UsersPage() {
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Department</TableHead>
-                  <TableHead>Position</TableHead>
+                  <TableHead>Occupation</TableHead>
+                  <TableHead>NIN</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -249,14 +288,13 @@ export default function UsersPage() {
                       <TableCell className="text-muted-foreground">{user.phone || "-"}</TableCell>
                       <TableCell>{user.department || "-"}</TableCell>
                       <TableCell>{user.position || "-"}</TableCell>
+                      <TableCell className="text-muted-foreground">{(user as any).nin || "-"}</TableCell>
                       <TableCell>
                         <span className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(user.status)}`}>
                           {user.status}
                         </span>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(user.createdAt).toLocaleDateString()}
-                      </TableCell>
+                      <TableCell className="text-muted-foreground">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)} title="Edit user">

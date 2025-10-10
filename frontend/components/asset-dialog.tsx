@@ -19,6 +19,9 @@ interface AssetDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   asset?: any
+  categories?: Array<{ id: number; name: string }>
+  suppliers?: Array<{ id: number; name: string }>
+  locations?: Array<{ id: number; name: string }>
 }
 
 const USERS_STORAGE_KEY = "ams.usersDirectory";
@@ -33,13 +36,67 @@ function getUserNames(): string[] {
   } catch { return [] }
 }
 
-export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
+export function AssetDialog({ open, onOpenChange, asset, categories = [], suppliers = [], locations = [] }: AssetDialogProps) {
   const isEdit = !!asset
   const [userOptions, setUserOptions] = useState<string[]>([])
 
+  const [name, setName] = useState("")
+  const [serialNumber, setSerialNumber] = useState("")
+  const [purchasePrice, setPurchasePrice] = useState("")
+  const [status, setStatus] = useState("Active")
+  const [categoryId, setCategoryId] = useState<string>("")
+  const [locationId, setLocationId] = useState<string>("")
+  const [supplierId, setSupplierId] = useState<string>("")
+  const [purchaseDate, setPurchaseDate] = useState("")
+  const [warrantyExpiry, setWarrantyExpiry] = useState("")
+  const [currentValue, setCurrentValue] = useState("")
+
   useEffect(() => {
     setUserOptions(getUserNames())
-  }, [open])
+    if (asset) {
+      setName(asset.name ?? "")
+      setSerialNumber(asset.serialNumber ?? "")
+      setPurchasePrice(String(asset.purchasePrice ?? ""))
+      setStatus(asset.status ?? "Active")
+      setCategoryId(asset.categoryId ? String(asset.categoryId) : "")
+      setLocationId(asset.locationId ? String(asset.locationId) : "")
+      setSupplierId(asset.supplierId ? String(asset.supplierId) : "")
+      const fmt = (d?: string) => (d ? String(d).slice(0, 10) : "")
+      setPurchaseDate(fmt(asset.purchaseDate))
+      setWarrantyExpiry(fmt(asset.warrantyExpiry))
+      setCurrentValue(String(asset.currentValue ?? ""))
+    } else {
+      setName("")
+      setSerialNumber("")
+      setPurchasePrice("")
+      setStatus("Active")
+      setCategoryId("")
+      setLocationId("")
+      setSupplierId("")
+      setPurchaseDate("")
+      setWarrantyExpiry("")
+      setCurrentValue("")
+    }
+  }, [asset, open])
+
+  function handleSubmit() {
+    const result = {
+      name: name.trim(),
+      serialNumber: serialNumber.trim(),
+      purchasePrice: Number(purchasePrice || 0),
+      currentValue: Number(currentValue || purchasePrice || 0),
+      status,
+      categoryId: categoryId ? Number(categoryId) : null,
+      locationId: locationId ? Number(locationId) : null,
+      supplierId: supplierId ? Number(supplierId) : null,
+      purchaseDate: purchaseDate || null,
+      warrantyExpiry: warrantyExpiry || null,
+    }
+    // Bubble result via custom event on dialog element for parent to capture
+    const evt = new CustomEvent("asset:submit", { detail: result })
+    window.dispatchEvent(evt)
+    onOpenChange(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,108 +111,36 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Asset Name</Label>
-              <Input id="name" placeholder="Dell Laptop XPS 15" defaultValue={asset?.name} />
+              <Input id="name" placeholder="Enter asset name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="serialNumber">Serial Number</Label>
-              <Input id="serialNumber" placeholder="DL-XPS-2024-001" defaultValue={asset?.serialNumber} />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" placeholder="Enter asset description..." defaultValue={asset?.description} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="supplier">Supplier</Label>
-              <Select defaultValue={asset?.supplier}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select supplier" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Dell Inc.">Dell Inc.</SelectItem>
-                  <SelectItem value="HP Enterprise">HP Enterprise</SelectItem>
-                  <SelectItem value="Office Furniture Co.">Office Furniture Co.</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="classification">Classification</Label>
-              <Select defaultValue={asset?.classification}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select classification" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Electronics">Electronics</SelectItem>
-                  <SelectItem value="Office Equipment">Office Equipment</SelectItem>
-                  <SelectItem value="Furniture">Furniture</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="storage">Storage Location</Label>
-              <Select defaultValue={asset?.storage}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Office Floor 2">Office Floor 2</SelectItem>
-                  <SelectItem value="Office Floor 3">Office Floor 3</SelectItem>
-                  <SelectItem value="Warehouse A">Warehouse A</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="assignedUser">Assigned User</Label>
-              <Select defaultValue={asset?.assignedUser}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select user" />
-                </SelectTrigger>
-                <SelectContent>
-                  {userOptions.map((name) => (
-                    <SelectItem key={name} value={name}>{name}</SelectItem>
-                  ))}
-                  <SelectItem value="Unassigned">Unassigned</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input id="serialNumber" placeholder="Enter serial number" value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="purchaseDate">Purchase Date</Label>
-              <Input id="purchaseDate" type="date" defaultValue={asset?.purchaseDate} />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="purchasePrice">Purchase Price</Label>
-              <Input
-                id="purchasePrice"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                defaultValue={asset?.purchasePrice}
-              />
+              <Input id="purchasePrice" type="number" step="0.01" placeholder="Enter purchase price" value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="currentValue">Current Value</Label>
-              <Input
-                id="currentValue"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                defaultValue={asset?.currentValue}
-              />
+              <Input id="currentValue" type="number" step="0.01" placeholder="Enter current value" value={currentValue} onChange={(e) => setCurrentValue(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="purchaseDate">Purchase Date</Label>
+              <Input id="purchaseDate" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="warrantyExpiry">Warranty Expiry</Label>
+              <Input id="warrantyExpiry" type="date" value={warrantyExpiry} onChange={(e) => setWarrantyExpiry(e.target.value)} />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select defaultValue={asset?.status || "Active"}>
+            <Select value={status} onValueChange={setStatus}>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -167,12 +152,52 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(c => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Select value={locationId} onValueChange={setLocationId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {locations.map(l => (
+                    <SelectItem key={l.id} value={String(l.id)}>{l.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="supplier">Supplier</Label>
+              <Select value={supplierId} onValueChange={setSupplierId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map(s => (
+                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={() => onOpenChange(false)}>{isEdit ? "Update Asset" : "Add Asset"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={handleSubmit}>{isEdit ? "Update Asset" : "Add Asset"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

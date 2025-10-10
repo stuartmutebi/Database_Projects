@@ -22,6 +22,7 @@ export interface User {
   phone: string
   department: string
   position: string
+  nin?: string
   status: "Active" | "Inactive"
   notes?: string
   createdAt: string
@@ -44,6 +45,7 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
     phone: "",
     department: "",
     position: "",
+    nin: "",
     status: "Active" as "Active" | "Inactive",
     notes: ""
   })
@@ -56,6 +58,7 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
         phone: user.phone,
         department: user.department,
         position: user.position,
+        nin: user.nin || "",
         status: user.status,
         notes: user.notes || ""
       })
@@ -66,6 +69,7 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
         phone: "",
         department: "",
         position: "",
+        nin: "",
         status: "Active",
         notes: ""
       })
@@ -109,7 +113,7 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
                 <Label htmlFor="name">Full Name *</Label>
                 <Input 
                   id="name" 
-                  placeholder="John Doe" 
+                  placeholder="Enter full name" 
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   required
@@ -120,7 +124,7 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="john.doe@company.com" 
+                  placeholder="Enter email address" 
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   required
@@ -133,7 +137,7 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
                 <Label htmlFor="phone">Phone</Label>
                 <Input 
                   id="phone" 
-                  placeholder="+1-555-0200" 
+                  placeholder="Enter phone number" 
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                 />
@@ -142,7 +146,7 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
                 <Label htmlFor="department">Department</Label>
                 <Input 
                   id="department" 
-                  placeholder="IT Department" 
+                  placeholder="Enter department" 
                   value={formData.department}
                   onChange={(e) => handleInputChange("department", e.target.value)}
                 />
@@ -151,15 +155,27 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
+              <Label htmlFor="position">Occupation</Label>
                 <Input 
                   id="position" 
-                  placeholder="Senior Developer" 
+                  placeholder="Enter occupation" 
                   value={formData.position}
                   onChange={(e) => handleInputChange("position", e.target.value)}
                 />
               </div>
               <div className="space-y-2">
+              <Label htmlFor="nin">NIN</Label>
+              <Input 
+                id="nin" 
+                placeholder="Enter NIN" 
+                value={formData.nin}
+                onChange={(e) => handleInputChange("nin", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select 
                   value={formData.status} 
@@ -173,14 +189,14 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
                     <SelectItem value="Inactive">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
             </div>
+          </div>
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea 
                 id="notes" 
-                placeholder="Additional notes about the user..."
+                placeholder="Enter additional notes (optional)"
                 value={formData.notes}
                 onChange={(e) => handleInputChange("notes", e.target.value)}
                 rows={3}

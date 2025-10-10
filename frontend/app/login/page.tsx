@@ -46,9 +46,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md p-6">
-  <h2 className="mb-6 text-2xl font-semibold">Login</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen grid place-items-center p-6 route-container">
+      <div className="landing-card grid grid-cols-1 md:grid-cols-2 w-full max-w-4xl bg-card">
+        <div className="landing-left p-10 text-white hidden md:flex items-center justify-center">
+          <div className="max-w-sm">
+            <h2 className="text-3xl font-extrabold tracking-tight mb-2">Welcome back</h2>
+            <p className="opacity-90">Sign in to continue managing your assets.</p>
+          </div>
+        </div>
+        <div className="p-8 md:p-10">
+          <h2 className="mb-2 text-2xl font-semibold">Login</h2>
+          <p className="mb-6 text-sm text-muted-foreground">Enter your credentials to access the dashboard.</p>
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="full_name">Full name</Label>
           <Input
@@ -98,8 +107,12 @@ export default function LoginPage() {
         <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? "Signing in..." : "Login"}
         </Button>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Don't have an account? <Link href="/register" className="text-primary underline-offset-4 hover:underline">Register</Link>
+        </p>
       </form>
-      {/* debug panel removed */}
+        </div>
+      </div>
     </div>
   );
 }

@@ -14,61 +14,31 @@ import {
   Trash2,
   LogIn,
   UserPlus,
+  ClipboardList,
+  UserCog,
+  ReceiptText,
 } from "lucide-react";
 import { getCurrentUser, logout, type UserRecord } from "@/lib/auth";
 import { useEffect, useState } from "react";
 
 const navItems = [
-  {
-    title: "Dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Assets",
-    href: "/assets",
-    icon: Package,
-  },
-  {
-    title: "Suppliers",
-    href: "/suppliers",
-    icon: Building2,
-  },
-  {
-    title: "Users",
-    href: "/users",
-    icon: Users,
-  },
-  {
-    title: "Classifications",
-    href: "/classifications",
-    icon: FolderTree,
-  },
-  {
-    title: "Storage",
-    href: "/storage",
-    icon: Warehouse,
-  },
-  {
-    title: "Maintenance",
-    href: "/maintenance",
-    icon: Wrench,
-  },
-  {
-    title: "Disposal",
-    href: "/disposal",
-    icon: Trash2,
-  },
-  {
-    title: "Login",
-    href: "/login",
-    icon: LogIn,
-  },
-  {
-    title: "Register",
-    href: "/register",
-    icon: UserPlus,
-  },
+  // 1) Entry
+  { title: "Dashboard", href: "/", icon: LayoutDashboard },
+  // 2) Masters that assets depend on
+  { title: "Categories", href: "/categories", icon: FolderTree },
+  { title: "Suppliers", href: "/suppliers", icon: Building2 },
+  { title: "Locations", href: "/locations", icon: Warehouse },
+  { title: "Users", href: "/users", icon: Users },
+  // 3) Core operations
+  { title: "Assets", href: "/assets", icon: Package },
+  { title: "Assignments", href: "/assignments", icon: ClipboardList },
+  { title: "Maintenance", href: "/maintenance", icon: Wrench },
+  { title: "Maintenance Staff", href: "/maintenance-staff", icon: UserCog },
+  { title: "Asset Valuation", href: "/valuations", icon: ReceiptText },
+  { title: "Disposal", href: "/disposal", icon: Trash2 },
+  // 4) Auth
+  { title: "Login", href: "/login", icon: LogIn },
+  { title: "Register", href: "/register", icon: UserPlus },
 ];
 
 export function SidebarNav() {
