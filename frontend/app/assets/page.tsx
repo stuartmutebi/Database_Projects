@@ -15,11 +15,8 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { AssetDialog } from "@/components/asset-dialog";
-
-
+ 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
-
-
 type ApiAsset = {
   asset_id: number;
   asset_name: string;
@@ -37,7 +34,7 @@ export default function AssetsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
-
+ 
   const [assets, setAssets] = useState<any[]>([])
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
   const [locations, setLocations] = useState<{ id: number; name: string }[]>([])
@@ -212,7 +209,6 @@ export default function AssetsPage() {
     window.addEventListener('asset:submit', onSubmit as any)
     return () => window.removeEventListener('asset:submit', onSubmit as any)
   }, [selectedAsset])
-
   return (
     <div className="flex">
       <SidebarNav />
@@ -250,7 +246,6 @@ export default function AssetsPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Serial Number</TableHead>
-                  
                   <TableHead>Location</TableHead>
                   <TableHead>Supplier</TableHead>
                   <TableHead>Purchase Date</TableHead>
@@ -282,7 +277,6 @@ export default function AssetsPage() {
                       <TableCell className="font-mono text-sm">
                         {asset.serialNumber}
                       </TableCell>
-                      
                       <TableCell>{locations.find(l => l.id === asset.locationId)?.name ?? '-'}</TableCell>
                       <TableCell>{suppliers.find(s => s.id === asset.supplierId)?.name ?? '-'}</TableCell>
                       <TableCell className="text-muted-foreground">{asset.purchaseDate || '-'}</TableCell>
