@@ -1,0 +1,21 @@
+{
+  "name": "asset-management-system",
+  "version": "1.0.0",
+  "description": "Asset Management System with Local and Team Database Support",
+  "private": true,
+  "scripts": {
+    "team:start": "node scripts/start-team-db.js start",
+    "team:stop": "node scripts/start-team-db.js stop",
+    "team:status": "node scripts/start-team-db.js status",
+    "sync:local-to-team": "node scripts/sync-databases.js local-to-team",
+    "sync:team-to-local": "node scripts/sync-databases.js team-to-local",
+    "setup:team": "npm run team:start && cd backend && npm run db:team && npm run prisma:push",
+    "setup:local": "cd backend && npm run db:local && npm run prisma:push",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "keywords": ["asset-management", "database", "team-collaboration"],
+  "author": "Your Team",
+  "license": "MIT"
+}
+

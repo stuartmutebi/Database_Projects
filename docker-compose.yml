@@ -1,17 +1,43 @@
 version: "3.9"
 services:
+  # Virtual database for team collaboration
   db:
     image: mysql:8.0
-    container_name: asset_mysql
+    container_name: asset_mysql_team
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: asset_mgr
+      MYSQL_DATABASE: asset_mgr_team
       MYSQL_USER: asset_user
       MYSQL_PASSWORD: asset_pass
     ports:
-      - "3306:3306"
+      - "3308:3306"  # Different port to avoid conflict with local MySQL (3307)
     volumes:
-      - db_data:/var/lib/mysql
+      - team_db_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d  # For initialization scripts
+    networks:
+      - asset_network
+
+  # Optional: phpMyAdmin for easy database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: asset_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: asset_user
+      PMA_PASSWORD: asset_pass
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - asset_network
+
 volumes:
-  db_data:
+  team_db_data:
+
+networks:
+  asset_network:
+    driver: bridge
