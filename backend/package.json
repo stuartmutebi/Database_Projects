@@ -9,7 +9,11 @@
     "start": "node src/index.js",
     "prisma:pull": "prisma db pull",
     "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push"
+    "prisma:push": "prisma db push",
+    "db:local": "cp ../env.local .env && npm run prisma:generate",
+    "db:team": "cp ../env.team .env && npm run prisma:generate",
+    "sync:local-to-team": "node ../scripts/sync-databases.js local-to-team",
+    "sync:team-to-local": "node ../scripts/sync-databases.js team-to-local"
   },
   "dependencies": {
     "@prisma/client": "^6.17.0",
