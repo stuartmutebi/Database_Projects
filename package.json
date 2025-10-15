@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Asset Management System with Local and Team Database Support",
   "private": true,
+  "type": "module",
   "scripts": {
     "team:start": "node scripts/start-team-db.js start",
     "team:stop": "node scripts/start-team-db.js stop",

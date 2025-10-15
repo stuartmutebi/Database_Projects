@@ -57,7 +57,7 @@ export function ClassificationDialog({ open, onOpenChange, classification, onSav
     }
   }, [classification, open])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent, keepOpen = false) => {
     e.preventDefault()
     
     if (!formData.name.trim()) {
@@ -67,10 +67,20 @@ export function ClassificationDialog({ open, onOpenChange, classification, onSav
 
     if (isEdit && classification) {
       onUpdate(classification.id, formData)
+      onOpenChange(false)
     } else {
       onSave(formData)
+      if (keepOpen) {
+        // Reset form for next entry
+        setFormData({
+          name: "",
+          description: "",
+          category: "General"
+        })
+      } else {
+        onOpenChange(false)
+      }
     }
-    onOpenChange(false)
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -140,7 +150,12 @@ export function ClassificationDialog({ open, onOpenChange, classification, onSav
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">{isEdit ? "Update Classification" : "Add Classification"}</Button>
+            {!isEdit && (
+              <Button type="button" variant="secondary" onClick={(e) => handleSubmit(e, true)}>
+                Save & Add Another
+              </Button>
+            )}
+            <Button type="submit">{isEdit ? "Update Classification" : "Save & Close"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

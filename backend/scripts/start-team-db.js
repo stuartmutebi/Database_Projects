@@ -5,9 +5,9 @@
  * Starts the virtual MySQL database for team collaboration
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 function runCommand(command) {
   try {

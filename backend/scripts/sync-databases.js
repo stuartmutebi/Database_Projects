@@ -5,9 +5,9 @@
  * Syncs data between local and team databases
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 const LOCAL_ENV = 'env.local';
 const TEAM_ENV = 'env.team';
@@ -42,41 +42,41 @@ function switchToDatabase(envFile) {
 
 function syncFromLocalToTeam() {
   console.log('🔄 Syncing from Local to Team Database...');
-  
+
   // Switch to local database
   switchToDatabase(LOCAL_ENV);
-  
+
   // Export data from local
   console.log('📤 Exporting data from local database...');
-  runCommand('npm run prisma:generate', './backend');
-  
+  runCommand('npx prisma generate --no-engine', './backend');
+
   // Switch to team database
   switchToDatabase(TEAM_ENV);
-  
+
   // Import data to team
   console.log('📥 Importing data to team database...');
   runCommand('npm run prisma:push', './backend');
-  
+
   console.log('✅ Sync completed: Local → Team');
 }
 
 function syncFromTeamToLocal() {
   console.log('🔄 Syncing from Team to Local Database...');
-  
+
   // Switch to team database
   switchToDatabase(TEAM_ENV);
-  
+
   // Export data from team
   console.log('📤 Exporting data from team database...');
-  runCommand('npm run prisma:generate', './backend');
-  
+  runCommand('npx prisma generate --no-engine', './backend');
+
   // Switch to local database
   switchToDatabase(LOCAL_ENV);
-  
+
   // Import data to local
   console.log('📥 Importing data to local database...');
   runCommand('npm run prisma:push', './backend');
-  
+
   console.log('✅ Sync completed: Team → Local');
 }
 

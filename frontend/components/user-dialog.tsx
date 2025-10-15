@@ -76,7 +76,7 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
     }
   }, [user, open])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent, keepOpen = false) => {
     e.preventDefault()
     if (!formData.name.trim() || !formData.email.trim()) {
       alert("Please fill in all required fields")
@@ -84,10 +84,25 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
     }
     if (isEdit && user) {
       onUpdate(user.id, formData)
+      onOpenChange(false)
     } else {
       onSave(formData)
+      if (keepOpen) {
+        // Reset form for next entry
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          department: "",
+          position: "",
+          nin: "",
+          status: "Active",
+          notes: ""
+        })
+      } else {
+        onOpenChange(false)
+      }
     }
-    onOpenChange(false)
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -207,7 +222,12 @@ export function UserDialog({ open, onOpenChange, user, onSave, onUpdate }: UserD
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">{isEdit ? "Update User" : "Add User"}</Button>
+            {!isEdit && (
+              <Button type="button" variant="secondary" onClick={(e) => handleSubmit(e, true)}>
+                Save & Add Another
+              </Button>
+            )}
+            <Button type="submit">{isEdit ? "Update User" : "Save & Close"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

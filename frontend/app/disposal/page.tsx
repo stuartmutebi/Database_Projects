@@ -18,11 +18,48 @@ import { DisposalDialog, Disposal } from "@/components/disposal-dialog";
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { useNotificationActions } from "@/components/notification-system";
 
-const STORAGE_KEY = "database_disposal";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
-// Generate a simple ID
-function generateId(): string {
-  return `disposal_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+type ApiDisposal = {
+  disposal_id: number;
+  asset_id: number;
+  disposal_method: string;
+  disposal_date: string;
+  sale_price?: number | null;
+  buyer?: string | null;
+  environmental_impact: string;
+  status: string;
+  description?: string | null;
+};
+
+function mapApiToUi(d: ApiDisposal): Disposal {
+  return {
+    id: String(d.disposal_id),
+    asset: `Asset ${d.asset_id}`,
+    assetId: String(d.asset_id),
+    disposalMethod: d.disposal_method,
+    disposalDate: d.disposal_date,
+    salePrice: d.sale_price || 0,
+    buyer: d.buyer || "",
+    environmentalImpact: d.environmental_impact,
+    status: d.status as any,
+    description: d.description || "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function mapUiToApi(d: Omit<Disposal, 'id' | 'createdAt' | 'updatedAt'>): Omit<ApiDisposal, 'disposal_id'> {
+  return {
+    asset_id: Number(d.assetId),
+    disposal_method: d.disposalMethod,
+    disposal_date: d.disposalDate,
+    sale_price: d.salePrice || null,
+    buyer: d.buyer || null,
+    environmental_impact: d.environmentalImpact,
+    status: d.status,
+    description: d.description || null,
+  };
 }
 
 export default function DisposalPage() {
@@ -36,22 +73,21 @@ export default function DisposalPage() {
   const [methodFilter, setMethodFilter] = useState<string>("All");
   const { showSuccess, showError } = useNotificationActions();
 
-  // Load disposal records from localStorage on component mount
+  // Load disposal records from API on component mount
   useEffect(() => {
-    const savedDisposals = localStorage.getItem(STORAGE_KEY);
-    if (savedDisposals) {
+    async function load() {
       try {
-        setDisposalRecords(JSON.parse(savedDisposals));
-      } catch (error) {
-        console.error("Error loading disposal records from localStorage:", error);
+        const res = await fetch(`${API_BASE_URL}/api/disposals`);
+        if (!res.ok) throw new Error("Failed to load disposal records");
+        const data: ApiDisposal[] = await res.json();
+        setDisposalRecords(data.map(mapApiToUi));
+      } catch (e) {
+        console.error(e);
+        showError("Load Failed", "Unable to load disposal records from server");
       }
     }
+    load();
   }, []);
-
-  // Save disposal records to localStorage whenever disposal state changes
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(disposalRecords));
-  }, [disposalRecords]);
 
   const filteredDisposals = disposalRecords.filter((disposal) => {
     const matchesSearch = 
@@ -66,24 +102,38 @@ export default function DisposalPage() {
     return matchesSearch && matchesStatus && matchesMethod
   });
 
-  const handleAddDisposal = (disposalData: Omit<Disposal, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newDisposal: Disposal = {
-      ...disposalData,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setDisposalRecords(prev => [...prev, newDisposal]);
-    showSuccess("Disposal Recorded", `Disposal of ${disposalData.asset} has been successfully recorded.`);
+  const handleAddDisposal = async (disposalData: Omit<Disposal, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/disposals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mapUiToApi(disposalData))
+      });
+      if (!res.ok) throw new Error('Failed to create disposal record');
+      const created: ApiDisposal = await res.json();
+      setDisposalRecords(prev => [...prev, mapApiToUi(created)]);
+      showSuccess("Disposal Recorded", `Disposal of ${disposalData.asset} has been successfully recorded.`);
+    } catch (e) {
+      console.error(e);
+      showError("Create Failed", "Unable to save disposal record to server");
+    }
   };
 
-  const handleUpdateDisposal = (id: string, disposalData: Omit<Disposal, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setDisposalRecords(prev => prev.map(disposal => 
-      disposal.id === id 
-        ? { ...disposal, ...disposalData, updatedAt: new Date().toISOString() }
-        : disposal
-    ));
-    showSuccess("Disposal Updated", `Disposal record for ${disposalData.asset} has been successfully updated.`);
+  const handleUpdateDisposal = async (id: string, disposalData: Omit<Disposal, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/disposals/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mapUiToApi(disposalData))
+      });
+      if (!res.ok) throw new Error('Failed to update disposal record');
+      const updated: ApiDisposal = await res.json();
+      setDisposalRecords(prev => prev.map(d => d.id === id ? mapApiToUi(updated) : d));
+      showSuccess("Disposal Updated", `Disposal record for ${disposalData.asset} has been successfully updated.`);
+    } catch (e) {
+      console.error(e);
+      showError("Update Failed", "Unable to update disposal record on server");
+    }
   };
 
   const handleDeleteDisposal = (disposal: Disposal) => {
@@ -91,11 +141,17 @@ export default function DisposalPage() {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (disposalToDelete) {
+  const confirmDelete = async () => {
+    if (!disposalToDelete) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/disposals/${disposalToDelete.id}`, { method: 'DELETE' });
+      if (!res.ok && res.status !== 204) throw new Error('Failed to delete disposal record');
       setDisposalRecords(prev => prev.filter(disposal => disposal.id !== disposalToDelete.id));
       showSuccess("Disposal Deleted", `Disposal record for ${disposalToDelete.asset} has been successfully deleted.`);
       setDisposalToDelete(null);
+    } catch (e) {
+      console.error(e);
+      showError("Delete Failed", "Unable to delete disposal record from server");
     }
   };
 

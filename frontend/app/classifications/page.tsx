@@ -70,11 +70,18 @@ export default function ClassificationsPage() {
       const res = await fetch(`${API_BASE_URL}/api/categories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category_name: classificationData.name, description: classificationData.description })
+        body: JSON.stringify({ 
+          category_name: classificationData.name, 
+          description: classificationData.description,
+          category_type: classificationData.category
+        })
       })
-      if (!res.ok) throw new Error('Failed to create category')
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.detail || 'Failed to create category')
+      }
       const created: { category_id: number; category_name: string; description?: string | null; _count?: { assets: number } } = await res.json()
-      setClassifications(prev => [...prev, {
+      const newClassification = {
         id: String(created.category_id),
         name: created.category_name,
         description: created.description || '',
@@ -82,11 +89,20 @@ export default function ClassificationsPage() {
         assetCount: created._count?.assets ?? 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }])
+      }
+      // Check if classification with this ID already exists
+      setClassifications(prev => {
+        const exists = prev.some(c => c.id === newClassification.id)
+        if (exists) {
+          // Update existing instead of adding duplicate
+          return prev.map(c => c.id === newClassification.id ? newClassification : c)
+        }
+        return [...prev, newClassification]
+      })
       showSuccess("Classification Added", `${classificationData.name} has been successfully added.`)
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      showError("Create Failed", "Unable to save classification to server")
+      showError("Create Failed", e.message || "Unable to save classification to server")
     }
   }
 
@@ -95,9 +111,16 @@ export default function ClassificationsPage() {
       const res = await fetch(`${API_BASE_URL}/api/categories/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category_name: classificationData.name, description: classificationData.description })
+        body: JSON.stringify({ 
+          category_name: classificationData.name, 
+          description: classificationData.description,
+          category_type: classificationData.category
+        })
       })
-      if (!res.ok) throw new Error('Failed to update category')
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.detail || 'Failed to update category')
+      }
       const updated: { category_id: number; category_name: string; description?: string | null; _count?: { assets: number } } = await res.json()
       setClassifications(prev => prev.map(c => c.id === id ? {
         ...c,
@@ -108,9 +131,9 @@ export default function ClassificationsPage() {
         updatedAt: new Date().toISOString(),
       } : c))
       showSuccess("Classification Updated", `${classificationData.name} has been successfully updated.`)
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      showError("Update Failed", "Unable to update classification on server")
+      showError("Update Failed", e.message || "Unable to update classification on server")
     }
   }
 

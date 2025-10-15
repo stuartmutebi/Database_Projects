@@ -17,6 +17,8 @@ import {
   ClipboardList,
   UserCog,
   ReceiptText,
+  ShoppingCart,
+  BarChart3,
 } from "lucide-react";
 import { getCurrentUser, logout, type UserRecord } from "@/lib/auth";
 import { useEffect, useState } from "react";
@@ -29,6 +31,7 @@ const navItems = [
   { title: "Suppliers", href: "/suppliers", icon: Building2 },
   { title: "Locations", href: "/locations", icon: Warehouse },
   { title: "Users", href: "/users", icon: Users },
+  { title: "Buyers", href: "/buyers", icon: ShoppingCart },
   // 3) Core operations
   { title: "Assets", href: "/assets", icon: Package },
   { title: "Assignments", href: "/assignments", icon: ClipboardList },
@@ -36,7 +39,9 @@ const navItems = [
   { title: "Maintenance Staff", href: "/maintenance-staff", icon: UserCog },
   { title: "Asset Valuation", href: "/valuations", icon: ReceiptText },
   { title: "Disposal", href: "/disposal", icon: Trash2 },
-  // 4) Auth
+  // 4) Reports
+  { title: "Reports", href: "/reports", icon: BarChart3 },
+  // 5) Auth
   { title: "Login", href: "/login", icon: LogIn },
   { title: "Register", href: "/register", icon: UserPlus },
 ];

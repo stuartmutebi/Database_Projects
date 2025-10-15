@@ -1,5 +1,5 @@
 @echo off
-echo Starting Team Virtual Database...
+echo Starting Databases (Local + Virtual)...
 echo.
 
 REM Check if Docker is available
@@ -12,17 +12,25 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo Docker is available. Starting database...
+echo Docker is available. Starting databases...
 echo.
 
-REM Start the database
+REM Start both databases
 docker compose up -d
 
 if %errorlevel% equ 0 (
     echo.
-    echo ✅ Team database started successfully!
+    echo ✅ Virtual database started successfully!
     echo.
-    echo 📊 Database Information:
+    echo 📊 Your Local Database (Already Running):
+    echo    Host: localhost
+    echo    Port: 3307
+    echo    Database: assets_app_db
+    echo    Username: root
+    echo    Password: password123
+    echo    Status: Using your existing MySQL installation
+    echo.
+    echo 📊 Virtual Database (Team Shared - Docker):
     echo    Host: localhost
     echo    Port: 3308
     echo    Database: asset_mgr_team
@@ -33,12 +41,12 @@ if %errorlevel% equ 0 (
     echo    phpMyAdmin: http://localhost:8080
     echo.
     echo 🔧 Next Steps:
-    echo    1. Copy env.team to backend\.env
-    echo    2. Run: cd backend ^&^& npm run prisma:push
-    echo    3. Your team can now connect to the database!
+    echo    1. Copy env.local to backend\.env (for your laptop)
+    echo    2. Run: cd backend ^&^& npm run prisma:generate
+    echo    3. Run: cd backend ^&^& npm run dev
     echo.
 ) else (
-    echo ❌ Failed to start database!
+    echo ❌ Failed to start databases!
     echo Check the error messages above.
 )
 

@@ -18,11 +18,51 @@ import { MaintenanceDialog, Maintenance } from "@/components/maintenance-dialog"
 import { ConfirmationDialog } from "@/components/confirmation-dialog";
 import { useNotificationActions } from "@/components/notification-system";
 
-const STORAGE_KEY = "database_maintenance";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
-// Generate a simple ID
-function generateId(): string {
-  return `maintenance_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+type ApiMaintenance = {
+  maintenance_id: number;
+  asset_id: number;
+  maintenance_type: string;
+  scheduled_date: string;
+  completed_date?: string | null;
+  cost: number;
+  performed_by: string;
+  priority: string;
+  status: string;
+  description?: string | null;
+};
+
+function mapApiToUi(m: ApiMaintenance): Maintenance {
+  return {
+    id: String(m.maintenance_id),
+    asset: `Asset ${m.asset_id}`,
+    assetId: String(m.asset_id),
+    maintenanceType: m.maintenance_type,
+    scheduledDate: m.scheduled_date,
+    completedDate: m.completed_date || undefined,
+    cost: m.cost,
+    performedBy: m.performed_by,
+    priority: m.priority as any,
+    status: m.status as any,
+    description: m.description || "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function mapUiToApi(m: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>): Omit<ApiMaintenance, 'maintenance_id'> {
+  return {
+    asset_id: Number(m.assetId),
+    maintenance_type: m.maintenanceType,
+    scheduled_date: m.scheduledDate,
+    completed_date: m.completedDate || null,
+    cost: m.cost,
+    performed_by: m.performedBy,
+    priority: m.priority,
+    status: m.status,
+    description: m.description || null,
+  };
 }
 
 export default function MaintenancePage() {
@@ -36,22 +76,21 @@ export default function MaintenancePage() {
   const [priorityFilter, setPriorityFilter] = useState<string>("All");
   const { showSuccess, showError } = useNotificationActions();
 
-  // Load maintenance records from localStorage on component mount
+  // Load maintenance records from API on component mount
   useEffect(() => {
-    const savedMaintenance = localStorage.getItem(STORAGE_KEY);
-    if (savedMaintenance) {
+    async function load() {
       try {
-        setMaintenanceRecords(JSON.parse(savedMaintenance));
-      } catch (error) {
-        console.error("Error loading maintenance records from localStorage:", error);
+        const res = await fetch(`${API_BASE_URL}/api/maintenance`);
+        if (!res.ok) throw new Error("Failed to load maintenance records");
+        const data: ApiMaintenance[] = await res.json();
+        setMaintenanceRecords(data.map(mapApiToUi));
+      } catch (e) {
+        console.error(e);
+        showError("Load Failed", "Unable to load maintenance records from server");
       }
     }
+    load();
   }, []);
-
-  // Save maintenance records to localStorage whenever maintenance state changes
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(maintenanceRecords));
-  }, [maintenanceRecords]);
 
   const filteredMaintenance = maintenanceRecords.filter((maintenance) => {
     const matchesSearch = 
@@ -66,24 +105,38 @@ export default function MaintenancePage() {
     return matchesSearch && matchesStatus && matchesPriority
   });
 
-  const handleAddMaintenance = (maintenanceData: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newMaintenance: Maintenance = {
-      ...maintenanceData,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setMaintenanceRecords(prev => [...prev, newMaintenance]);
-    showSuccess("Maintenance Scheduled", `Maintenance for ${maintenanceData.asset} has been successfully scheduled.`);
+  const handleAddMaintenance = async (maintenanceData: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/maintenance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mapUiToApi(maintenanceData))
+      });
+      if (!res.ok) throw new Error('Failed to create maintenance record');
+      const created: ApiMaintenance = await res.json();
+      setMaintenanceRecords(prev => [...prev, mapApiToUi(created)]);
+      showSuccess("Maintenance Scheduled", `Maintenance for ${maintenanceData.asset} has been successfully scheduled.`);
+    } catch (e) {
+      console.error(e);
+      showError("Create Failed", "Unable to save maintenance record to server");
+    }
   };
 
-  const handleUpdateMaintenance = (id: string, maintenanceData: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setMaintenanceRecords(prev => prev.map(maintenance => 
-      maintenance.id === id 
-        ? { ...maintenance, ...maintenanceData, updatedAt: new Date().toISOString() }
-        : maintenance
-    ));
-    showSuccess("Maintenance Updated", `Maintenance record for ${maintenanceData.asset} has been successfully updated.`);
+  const handleUpdateMaintenance = async (id: string, maintenanceData: Omit<Maintenance, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/maintenance/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mapUiToApi(maintenanceData))
+      });
+      if (!res.ok) throw new Error('Failed to update maintenance record');
+      const updated: ApiMaintenance = await res.json();
+      setMaintenanceRecords(prev => prev.map(m => m.id === id ? mapApiToUi(updated) : m));
+      showSuccess("Maintenance Updated", `Maintenance record for ${maintenanceData.asset} has been successfully updated.`);
+    } catch (e) {
+      console.error(e);
+      showError("Update Failed", "Unable to update maintenance record on server");
+    }
   };
 
   const handleDeleteMaintenance = (maintenance: Maintenance) => {
@@ -91,11 +144,17 @@ export default function MaintenancePage() {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (maintenanceToDelete) {
+  const confirmDelete = async () => {
+    if (!maintenanceToDelete) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/maintenance/${maintenanceToDelete.id}`, { method: 'DELETE' });
+      if (!res.ok && res.status !== 204) throw new Error('Failed to delete maintenance record');
       setMaintenanceRecords(prev => prev.filter(maintenance => maintenance.id !== maintenanceToDelete.id));
       showSuccess("Maintenance Deleted", `Maintenance record for ${maintenanceToDelete.asset} has been successfully deleted.`);
       setMaintenanceToDelete(null);
+    } catch (e) {
+      console.error(e);
+      showError("Delete Failed", "Unable to delete maintenance record from server");
     }
   };
 
